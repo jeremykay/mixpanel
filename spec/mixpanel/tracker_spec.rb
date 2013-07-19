@@ -180,4 +180,17 @@ describe Mixpanel::Tracker do
       w2.should_not == w
     end
   end
+
+  context "Look for no_proxy env variable" do
+    it "when ENV['no_proxy'] is not set request should run normally" do
+      stub_const("ENV", {})
+      expect(@mixpanel).to receive(:open).with(kind_of(String)).and_call_original
+      @mixpanel.track("Sign up")
+    end
+    it "when ENV['no_proxy'] contains the url host, don't use a proxy" do
+      stub_const("ENV", {'no_proxy' => 'api.mixpanel.com'})
+      expect(@mixpanel).to receive(:open).with(kind_of(String),proxy: nil).and_call_original
+      @mixpanel.track("Sign up")
+    end
+  end
 end

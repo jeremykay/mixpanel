@@ -56,8 +56,23 @@ module Mixpanel
       Base64.encode64(JSON.generate(parameters)).gsub(/\n/,'')
     end
 
+    # return true if url is in the env no_proxy variable
+    def no_proxy?(url)
+      @no_proxy ||= (ENV['NO_PROXY'] || ENV['no_proxy'] || '')
+      uri = URI(url)
+      if @no_proxy.include?(uri.host)
+        return true
+      else
+        return false
+      end
+    end
+
     def request(url, async)
-      async ? send_async(url) : open(url).read
+      if async
+        send_async(url)
+      else 
+        no_proxy?(url) ? open(url, proxy: nil).read : open(url).read
+      end
     end
 
     def parse_response(response)
